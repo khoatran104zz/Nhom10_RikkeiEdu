@@ -1,0 +1,13 @@
+{
+  "name": "sales-platform",
+  "version": "1.0.0",
+  "description": "Hệ thống quản lý bán hàng đa chi nhánh - Backend: Spring Boot (Java) | Frontend: React + Vite",
+  "scripts": {
+    "dev": "concurrently -n BACKEND,FRONTEND -c green,cyan \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "cd backend && ./mvnw spring-boot:run",
+    "start:frontend": "cd frontend && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
