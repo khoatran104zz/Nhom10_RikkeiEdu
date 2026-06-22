@@ -11,31 +11,41 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     try {
       const storedUser = localStorage.getItem('user');
-      const storedAuth = localStorage.getItem('isAuthenticated');
+      const storedToken = localStorage.getItem('token');
       
-      if (storedAuth === 'true' && storedUser) {
+      if (storedToken && storedUser) {
         setUser(JSON.parse(storedUser));
         setIsAuthenticated(true);
+      } else {
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
       }
     } catch (e) {
       console.error('Failed to parse user from localStorage', e);
       localStorage.removeItem('user');
       localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('token');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const login = (userData) => {
+  const login = ({ token, user }) => {
+    if (!token || !user) {
+      throw new Error('Invalid login response from server');
+    }
     localStorage.setItem('isAuthenticated', 'true');
-    localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
+    setUser(user);
     setIsAuthenticated(true);
   };
 
   const logout = () => {
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
     setUser(null);
     setIsAuthenticated(false);
   };

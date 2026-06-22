@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class AuthServiceImpl implements AuthService {
 
@@ -26,7 +28,8 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
-        User user = userRepository.findByUsername(request.getUsername())
+        String identifier = request.getUsername().trim();
+        User user = findByUsernameOrEmail(identifier)
                 .orElseThrow(() -> new BadRequestException("Tên đăng nhập hoặc mật khẩu không đúng"));
 
         if (!user.getActive()) {
@@ -56,5 +59,9 @@ public class AuthServiceImpl implements AuthService {
         }
 
         return new LoginResponse(token, userResponse);
+    }
+    private Optional<User> findByUsernameOrEmail(String identifier) {
+        return userRepository.findByUsername(identifier)
+                .or(() -> userRepository.findByEmail(identifier));
     }
 }

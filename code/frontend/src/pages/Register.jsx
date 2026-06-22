@@ -70,18 +70,15 @@ export default function Register() {
     try {
       // Giả lập thời gian đăng ký tài khoản 1.5s
       await new Promise((resolve) => setTimeout(resolve, 1500));
+      toast('Dang ky chua ket noi backend. Vui long dung tai khoan da co trong database de dang nhap.', 'error');
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      navigate('/login');
+      return;
 
       toast('Đăng ký tài khoản Admin thành công!');
       
-      const newAdminUser = {
-        id: 'u-' + Math.random().toString(36).substr(2, 9),
-        name: form.name,
-        email: form.email,
-        phone: form.phone,
-        role: 'ADMIN',
-        branchId: null,
-      };
-
       // Thêm tài khoản mới đăng ký vào system_users trong localStorage
       const defaultUsers = [
         { id: 'u-admin', name: 'Lê Văn Admin', email: 'admin@emanage.vn', role: 'ADMIN', branchId: null },
@@ -92,25 +89,13 @@ export default function Register() {
         { id: 'u-customer', name: 'Khách Hàng A', email: 'customer@gmail.com', role: 'CUSTOMER', branchId: null }
       ];
       
-      let systemUsers = defaultUsers;
-      try {
-        const existing = localStorage.getItem('system_users');
-        if (existing) {
-          systemUsers = JSON.parse(existing);
-        }
-      } catch (e) {
-        systemUsers = defaultUsers;
-      }
-      
-      systemUsers.push(newAdminUser);
-      localStorage.setItem('system_users', JSON.stringify(systemUsers));
-
       // Gọi login tự động cho tài khoản admin vừa tạo
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('user', JSON.stringify(newAdminUser));
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
       
       // Load/reload lại app để cập nhật Context state (chuyển về trang chủ admin)
-      window.location.href = '/';
+      navigate('/login');
     } catch (err) {
       toast(err.message || 'Có lỗi xảy ra trong quá trình đăng ký', 'error');
     } finally {

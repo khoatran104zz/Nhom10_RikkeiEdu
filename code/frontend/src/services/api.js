@@ -6,16 +6,31 @@ const api = axios.create({
   timeout: 10000,
 });
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // Response interceptor for error handling
 api.interceptors.response.use(
   res => res.data,
   err => {
+    if (!err.response) {
+      return Promise.reject(new Error('Khong ket noi duoc backend. Vui long kiem tra server.'));
+    }
     const msg = err.response?.data?.message || 'Có lỗi xảy ra';
     return Promise.reject(new Error(msg));
   }
 );
 
 // ── Categories ──────────────────────────────────────
+export const authApi = {
+  login: (data) => api.post('/auth/login', data),
+};
+
 export const categoriesApi = {
   getAll: (search) => api.get('/categories', { params: { search } }),
   create: (data) => api.post('/categories', data),
