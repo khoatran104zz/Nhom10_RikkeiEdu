@@ -1,10 +1,10 @@
 {
   "name": "sales-platform",
   "version": "1.0.0",
-  "description": "Hệ thống quản lý bán hàng đa chi nhánh - Backend: Spring Boot (Java) | Frontend: React + Vite",
+  "description": "Hệ thống quản lý bán hàng - Backend: Spring Boot (Java) | Frontend: Next.js",
   "scripts": {
     "dev": "node dev-runner.js",
-    "start:backend": "cd code/backend && mvn spring-boot:run",
-    "start:frontend": "cd code/frontend && npm run dev"
+    "start:backend": "cd code/backend && mvnw spring-boot:run",
+    "start:frontend": "cd code/next-frontend && npm run dev"
   }
 }

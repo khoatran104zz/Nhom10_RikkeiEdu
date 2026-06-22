@@ -17,12 +17,12 @@ const processes = [
     name: "BACKEND",
     color: "\x1b[32m",
     cwd: path.join(rootDir, "code", "backend"),
-    command: "mvn spring-boot:run",
+    command: ".\\mvnw spring-boot:run",
   },
   {
     name: "FRONTEND",
     color: "\x1b[36m",
-    cwd: path.join(rootDir, "code", "frontend"),
+    cwd: path.join(rootDir, "code", "next-frontend"),
     command: "npm.cmd run dev",
   },
 ];
