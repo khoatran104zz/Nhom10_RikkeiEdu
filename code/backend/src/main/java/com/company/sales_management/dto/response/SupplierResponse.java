@@ -9,6 +9,8 @@ public class SupplierResponse {
     private String email;
     private String address;
     private String contactPerson;
+    private Integer shopId;
+    private String shopName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -24,6 +26,10 @@ public class SupplierResponse {
     public void setAddress(String address) { this.address = address; }
     public String getContactPerson() { return contactPerson; }
     public void setContactPerson(String contactPerson) { this.contactPerson = contactPerson; }
+    public Integer getShopId() { return shopId; }
+    public void setShopId(Integer shopId) { this.shopId = shopId; }
+    public String getShopName() { return shopName; }
+    public void setShopName(String shopName) { this.shopName = shopName; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

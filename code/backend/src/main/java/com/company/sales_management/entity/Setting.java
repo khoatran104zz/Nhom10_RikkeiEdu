@@ -11,6 +11,10 @@ public class Setting {
     @Id
     private Integer id = 1; // Always 1 for single row configuration
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shop_id")
+    private Shop shop;
+
     @Column(name = "shop_name", nullable = false, length = 150)
     private String shopName;
 
@@ -54,6 +58,9 @@ public class Setting {
     // Getters and Setters
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
+
+    public Shop getShop() { return shop; }
+    public void setShop(Shop shop) { this.shop = shop; }
 
     public String getShopName() { return shopName; }
     public void setShopName(String shopName) { this.shopName = shopName; }

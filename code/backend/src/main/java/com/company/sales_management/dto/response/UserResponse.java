@@ -11,6 +11,8 @@ public class UserResponse {
     private Boolean active;
     private Integer roleId;
     private String roleName;
+    private Integer shopId;
+    private String shopName;
     private Integer branchId;
     private String branchName;
     private LocalDateTime createdAt;
@@ -32,6 +34,10 @@ public class UserResponse {
     public void setRoleId(Integer roleId) { this.roleId = roleId; }
     public String getRoleName() { return roleName; }
     public void setRoleName(String roleName) { this.roleName = roleName; }
+    public Integer getShopId() { return shopId; }
+    public void setShopId(Integer shopId) { this.shopId = shopId; }
+    public String getShopName() { return shopName; }
+    public void setShopName(String shopName) { this.shopName = shopName; }
     public Integer getBranchId() { return branchId; }
     public void setBranchId(Integer branchId) { this.branchId = branchId; }
     public String getBranchName() { return branchName; }

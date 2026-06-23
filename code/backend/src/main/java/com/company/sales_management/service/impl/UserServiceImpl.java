@@ -4,12 +4,15 @@ import com.company.sales_management.dto.request.UserRequest;
 import com.company.sales_management.dto.response.UserResponse;
 import com.company.sales_management.entity.Branch;
 import com.company.sales_management.entity.Role;
+import com.company.sales_management.entity.Shop;
 import com.company.sales_management.entity.User;
 import com.company.sales_management.exception.BadRequestException;
 import com.company.sales_management.exception.ResourceNotFoundException;
 import com.company.sales_management.repository.BranchRepository;
 import com.company.sales_management.repository.RoleRepository;
+import com.company.sales_management.repository.ShopRepository;
 import com.company.sales_management.repository.UserRepository;
+import com.company.sales_management.service.TenantScopeService;
 import com.company.sales_management.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -35,6 +38,12 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private BranchRepository branchRepository;
 
     @Autowired
+    private ShopRepository shopRepository;
+
+    @Autowired
+    private TenantScopeService tenantScopeService;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Override
@@ -51,16 +60,32 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public Page<UserResponse> findAll(String search, Pageable pageable) {
-        if (search != null && !search.isBlank()) {
-            return userRepository.findBySearchTerm(search, pageable).map(this::toResponse);
+        User current = tenantScopeService.currentUser();
+        if (tenantScopeService.isSystemAdmin(current)) {
+            if (search != null && !search.isBlank()) {
+                return userRepository.findBySearchTerm(search, pageable).map(this::toResponse);
+            }
+            return userRepository.findAll(pageable).map(this::toResponse);
         }
-        return userRepository.findAll(pageable).map(this::toResponse);
+
+        Integer shopId = tenantScopeService.requiredShopId();
+        if (search != null && !search.isBlank()) {
+            return userRepository.findByShopIdAndSearchTerm(shopId, search, pageable).map(this::toResponse);
+        }
+        return userRepository.findByShopId(shopId, pageable).map(this::toResponse);
     }
 
     @Override
     public UserResponse findById(Integer id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Người dùng", "id", id));
+        User current = tenantScopeService.currentUser();
+        User user;
+        if (tenantScopeService.isSystemAdmin(current)) {
+            user = userRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Người dùng", "id", id));
+        } else {
+            user = userRepository.findByIdAndShopId(id, tenantScopeService.requiredShopId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Người dùng", "id", id));
+        }
         return toResponse(user);
     }
 
@@ -82,8 +107,15 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public UserResponse update(Integer id, UserRequest request) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Người dùng", "id", id));
+        User current = tenantScopeService.currentUser();
+        User user;
+        if (tenantScopeService.isSystemAdmin(current)) {
+            user = userRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Người dùng", "id", id));
+        } else {
+            user = userRepository.findByIdAndShopId(id, tenantScopeService.requiredShopId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Người dùng", "id", id));
+        }
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
@@ -97,10 +129,17 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public void delete(Integer id) {
-        if (!userRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Người dùng", "id", id);
+        User current = tenantScopeService.currentUser();
+        if (tenantScopeService.isSystemAdmin(current)) {
+            if (!userRepository.existsById(id)) {
+                throw new ResourceNotFoundException("Người dùng", "id", id);
+            }
+            userRepository.deleteById(id);
+            return;
         }
-        userRepository.deleteById(id);
+        User user = userRepository.findByIdAndShopId(id, tenantScopeService.requiredShopId())
+                .orElseThrow(() -> new ResourceNotFoundException("Người dùng", "id", id));
+        userRepository.delete(user);
     }
 
     private void setRelations(UserRequest request, User user) {
@@ -109,11 +148,39 @@ public class UserServiceImpl implements UserService, UserDetailsService {
                     .orElseThrow(() -> new ResourceNotFoundException("Vai trò", "id", request.getRoleId()));
             user.setRole(role);
         }
+
+        boolean targetIsSystemAdmin = user.getRole() != null && "SYSTEM_ADMIN".equals(user.getRole().getName());
+        Shop shop = resolveTargetShop(request, targetIsSystemAdmin);
+        user.setShop(shop);
+
         if (request.getBranchId() != null) {
-            Branch branch = branchRepository.findById(request.getBranchId())
+            if (shop == null) {
+                throw new BadRequestException("Không thể gán chi nhánh cho user chưa có shop");
+            }
+            Branch branch = branchRepository.findByIdAndShopId(request.getBranchId(), shop.getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Chi nhánh", "id", request.getBranchId()));
             user.setBranch(branch);
+        } else {
+            user.setBranch(null);
         }
+    }
+
+    private Shop resolveTargetShop(UserRequest request, boolean targetIsSystemAdmin) {
+        User current = tenantScopeService.currentUser();
+        if (tenantScopeService.isSystemAdmin(current)) {
+            if (targetIsSystemAdmin) {
+                return request.getShopId() != null
+                        ? shopRepository.findById(request.getShopId()).orElseThrow(() -> new ResourceNotFoundException("Shop", "id", request.getShopId()))
+                        : null;
+            }
+            if (request.getShopId() == null) {
+                throw new BadRequestException("User không phải SYSTEM_ADMIN phải được gán shop");
+            }
+            return shopRepository.findById(request.getShopId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Shop", "id", request.getShopId()));
+        }
+
+        return tenantScopeService.currentShop();
     }
 
     private UserResponse toResponse(User user) {
@@ -127,6 +194,10 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         if (user.getRole() != null) {
             response.setRoleId(user.getRole().getId());
             response.setRoleName(user.getRole().getName());
+        }
+        if (user.getShop() != null) {
+            response.setShopId(user.getShop().getId());
+            response.setShopName(user.getShop().getName());
         }
         if (user.getBranch() != null) {
             response.setBranchId(user.getBranch().getId());

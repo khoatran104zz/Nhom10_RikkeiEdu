@@ -6,7 +6,10 @@ export interface User {
   username: string;
   email: string;
   role: RoleType;
+  shopId?: number | null;
+  shopName?: string | null;
   branchId?: number | null;
+  branchName?: string | null;
   phone?: string;
 }
 
@@ -18,6 +21,9 @@ export interface AuthResponse {
     email: string;
     fullName?: string;
     roleName: RoleType;
+    shopId?: number | null;
+    shopName?: string | null;
     branchId?: number | null;
+    branchName?: string | null;
   };
 }

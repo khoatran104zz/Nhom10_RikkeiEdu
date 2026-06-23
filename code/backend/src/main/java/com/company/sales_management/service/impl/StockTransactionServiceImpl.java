@@ -6,6 +6,7 @@ import com.company.sales_management.entity.*;
 import com.company.sales_management.exception.ResourceNotFoundException;
 import com.company.sales_management.repository.*;
 import com.company.sales_management.service.StockTransactionService;
+import com.company.sales_management.service.TenantScopeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,21 +31,26 @@ public class StockTransactionServiceImpl implements StockTransactionService {
     @Autowired
     private BranchRepository branchRepository;
 
+    @Autowired
+    private TenantScopeService tenantScopeService;
+
     @Override
     public Page<StockTransactionResponse> findAll(String type, Integer productId, String startDate, String endDate, Pageable pageable) {
         LocalDateTime start = startDate != null ? LocalDate.parse(startDate).atStartOfDay() : null;
         LocalDateTime end = endDate != null ? LocalDate.parse(endDate).atTime(23, 59, 59) : null;
-        return stockTransactionRepository.findAllWithFilters(type, productId, start, end, pageable)
+        return stockTransactionRepository.findAllWithFilters(tenantScopeService.requiredShopId(), tenantScopeService.branchScopeId(), type, productId, start, end, pageable)
                 .map(this::toResponse);
     }
 
     @Override
     @Transactional
     public StockTransactionResponse create(StockTransactionRequest request) {
-        Product product = productRepository.findById(request.getProductId())
+        Shop shop = tenantScopeService.currentShop();
+        Product product = productRepository.findByIdAndShopId(request.getProductId(), shop.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Sản phẩm", "id", request.getProductId()));
 
         StockTransaction transaction = new StockTransaction();
+        transaction.setShop(shop);
         transaction.setProduct(product);
         transaction.setType(request.getType());
         transaction.setQuantity(request.getQuantity());
@@ -52,15 +58,12 @@ public class StockTransactionServiceImpl implements StockTransactionService {
         transaction.setNote(request.getNote());
 
         if (request.getSupplierId() != null) {
-            Supplier supplier = supplierRepository.findById(request.getSupplierId())
+            Supplier supplier = supplierRepository.findByIdAndShopId(request.getSupplierId(), shop.getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Nhà cung cấp", "id", request.getSupplierId()));
             transaction.setSupplier(supplier);
         }
-        if (request.getBranchId() != null) {
-            Branch branch = branchRepository.findById(request.getBranchId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Chi nhánh", "id", request.getBranchId()));
-            transaction.setBranch(branch);
-        }
+        Branch branch = tenantScopeService.resolveBranchForWrite(request.getBranchId());
+        transaction.setBranch(branch);
 
         // Update stock quantity
         switch (request.getType()) {
@@ -80,6 +83,10 @@ public class StockTransactionServiceImpl implements StockTransactionService {
     private StockTransactionResponse toResponse(StockTransaction t) {
         StockTransactionResponse response = new StockTransactionResponse();
         response.setId(t.getId());
+        if (t.getShop() != null) {
+            response.setShopId(t.getShop().getId());
+            response.setShopName(t.getShop().getName());
+        }
         response.setType(t.getType());
         response.setQuantity(t.getQuantity());
         response.setUnitPrice(t.getUnitPrice());

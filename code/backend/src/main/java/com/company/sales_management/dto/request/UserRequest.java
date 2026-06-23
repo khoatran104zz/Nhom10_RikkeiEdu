@@ -26,6 +26,8 @@ public class UserRequest {
 
     private Integer roleId;
 
+    private Integer shopId;
+
     private Integer branchId;
 
     // Getters and Setters
@@ -43,6 +45,8 @@ public class UserRequest {
     public void setActive(Boolean active) { this.active = active; }
     public Integer getRoleId() { return roleId; }
     public void setRoleId(Integer roleId) { this.roleId = roleId; }
+    public Integer getShopId() { return shopId; }
+    public void setShopId(Integer shopId) { this.shopId = shopId; }
     public Integer getBranchId() { return branchId; }
     public void setBranchId(Integer branchId) { this.branchId = branchId; }
 }

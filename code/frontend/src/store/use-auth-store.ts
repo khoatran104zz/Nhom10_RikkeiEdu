@@ -23,10 +23,26 @@ export const useAuthStore = create<AuthState>((set) => ({
       localStorage.setItem('isAuthenticated', 'true');
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
+      if (user.shopId !== undefined && user.shopId !== null) {
+        localStorage.setItem('shopId', String(user.shopId));
+      } else {
+        localStorage.removeItem('shopId');
+      }
+      if (user.branchId !== undefined && user.branchId !== null) {
+        localStorage.setItem('branchId', String(user.branchId));
+      } else {
+        localStorage.removeItem('branchId');
+      }
     }
 
     Cookies.set('token', token, { expires: 7, path: '/' });
     Cookies.set('user_role', user.role, { expires: 7, path: '/' });
+    if (user.shopId !== undefined && user.shopId !== null) {
+      Cookies.set('shop_id', String(user.shopId), { expires: 7, path: '/' });
+    }
+    if (user.branchId !== undefined && user.branchId !== null) {
+      Cookies.set('branch_id', String(user.branchId), { expires: 7, path: '/' });
+    }
 
     set({ user, token, isAuthenticated: true, loading: false });
   },
@@ -36,10 +52,14 @@ export const useAuthStore = create<AuthState>((set) => ({
       localStorage.removeItem('isAuthenticated');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      localStorage.removeItem('shopId');
+      localStorage.removeItem('branchId');
     }
 
     Cookies.remove('token', { path: '/' });
     Cookies.remove('user_role', { path: '/' });
+    Cookies.remove('shop_id', { path: '/' });
+    Cookies.remove('branch_id', { path: '/' });
 
     set({ user: null, token: null, isAuthenticated: false, loading: false });
   },
@@ -58,14 +78,26 @@ export const useAuthStore = create<AuthState>((set) => ({
         // Ensure cookies match localStorage state
         Cookies.set('token', storedToken, { expires: 7, path: '/' });
         Cookies.set('user_role', parsedUser.role, { expires: 7, path: '/' });
+        if (parsedUser.shopId !== undefined && parsedUser.shopId !== null) {
+          Cookies.set('shop_id', String(parsedUser.shopId), { expires: 7, path: '/' });
+          localStorage.setItem('shopId', String(parsedUser.shopId));
+        }
+        if (parsedUser.branchId !== undefined && parsedUser.branchId !== null) {
+          Cookies.set('branch_id', String(parsedUser.branchId), { expires: 7, path: '/' });
+          localStorage.setItem('branchId', String(parsedUser.branchId));
+        }
 
         set({ user: parsedUser, token: storedToken, isAuthenticated: true, loading: false });
       } else {
         localStorage.removeItem('isAuthenticated');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        localStorage.removeItem('shopId');
+        localStorage.removeItem('branchId');
         Cookies.remove('token', { path: '/' });
         Cookies.remove('user_role', { path: '/' });
+        Cookies.remove('shop_id', { path: '/' });
+        Cookies.remove('branch_id', { path: '/' });
         set({ user: null, token: null, isAuthenticated: false, loading: false });
       }
     } catch (e) {
@@ -73,8 +105,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       localStorage.removeItem('user');
       localStorage.removeItem('isAuthenticated');
       localStorage.removeItem('token');
+      localStorage.removeItem('shopId');
+      localStorage.removeItem('branchId');
       Cookies.remove('token', { path: '/' });
       Cookies.remove('user_role', { path: '/' });
+      Cookies.remove('shop_id', { path: '/' });
+      Cookies.remove('branch_id', { path: '/' });
       set({ user: null, token: null, isAuthenticated: false, loading: false });
     }
   },

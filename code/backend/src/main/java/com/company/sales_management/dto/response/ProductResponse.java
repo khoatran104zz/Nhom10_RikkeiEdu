@@ -6,6 +6,8 @@ public class ProductResponse {
     private Integer id;
     private String sku;
     private String name;
+    private Integer shopId;
+    private String shopName;
     private Integer categoryId;
     private String categoryName;
     private Integer brandId;
@@ -26,6 +28,10 @@ public class ProductResponse {
     public void setSku(String sku) { this.sku = sku; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+    public Integer getShopId() { return shopId; }
+    public void setShopId(Integer shopId) { this.shopId = shopId; }
+    public String getShopName() { return shopName; }
+    public void setShopName(String shopName) { this.shopName = shopName; }
     public Integer getCategoryId() { return categoryId; }
     public void setCategoryId(Integer categoryId) { this.categoryId = categoryId; }
     public String getCategoryName() { return categoryName; }

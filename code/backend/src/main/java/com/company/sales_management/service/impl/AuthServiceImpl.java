@@ -53,6 +53,10 @@ public class AuthServiceImpl implements AuthService {
             userResponse.setRoleId(user.getRole().getId());
             userResponse.setRoleName(user.getRole().getName());
         }
+        if (user.getShop() != null) {
+            userResponse.setShopId(user.getShop().getId());
+            userResponse.setShopName(user.getShop().getName());
+        }
         if (user.getBranch() != null) {
             userResponse.setBranchId(user.getBranch().getId());
             userResponse.setBranchName(user.getBranch().getName());

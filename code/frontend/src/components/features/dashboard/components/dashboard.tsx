@@ -6,6 +6,7 @@ import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, R
 import { TrendingUp, ShoppingCart, Users, Package, AlertTriangle, Clock, ArrowUpRight } from 'lucide-react';
 import { dashboardService } from '@/services';
 import { StatCard, Loading } from '@/components/base';
+import { useAuthStore } from '@/store/use-auth-store';
 import { formatCurrency, formatDateTime, getStatusLabel, getStatusClass } from '@/utils/format';
 import { DashboardData } from '@/types';
 
@@ -30,6 +31,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
     dashboardService.get()
@@ -42,6 +44,8 @@ export default function Dashboard() {
   if (!data) return null;
 
   const { stats, monthlyRevenue, topProducts, recentOrders, lowStock } = data;
+  const displayName = user?.name || user?.username || 'Người dùng';
+  const scopeLabel = user?.branchName || user?.shopName || 'shop hiện tại';
 
   return (
     <div className="space-y-6">
@@ -50,8 +54,8 @@ export default function Dashboard() {
         <div className="absolute -right-8 -top-8 w-40 h-40 bg-white/10 rounded-full" />
         <div className="absolute right-12 -bottom-12 w-32 h-32 bg-white/10 rounded-full" />
         <div className="relative">
-          <h1 className="text-xl font-extrabold">Chào mừng trở lại, Admin 👋</h1>
-          <p className="text-sm text-white/80 mt-1">Đây là tóm tắt hoạt động kinh doanh của eManage hôm nay.</p>
+          <h1 className="text-xl font-extrabold">Chào mừng trở lại, {displayName}</h1>
+          <p className="text-sm text-white/80 mt-1">Tóm tắt hoạt động kinh doanh của {scopeLabel} hôm nay.</p>
         </div>
       </div>
 

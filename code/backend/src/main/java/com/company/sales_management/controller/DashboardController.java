@@ -5,6 +5,7 @@ import com.company.sales_management.entity.Product;
 import com.company.sales_management.repository.CustomerRepository;
 import com.company.sales_management.repository.OrderRepository;
 import com.company.sales_management.repository.ProductRepository;
+import com.company.sales_management.service.TenantScopeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
@@ -32,19 +33,24 @@ public class DashboardController {
     @Autowired
     private CustomerRepository customerRepository;
 
+    @Autowired
+    private TenantScopeService tenantScopeService;
+
     @GetMapping
     public ResponseEntity<Map<String, Object>> getDashboardData() {
+        Integer shopId = tenantScopeService.requiredShopId();
+        Integer branchId = tenantScopeService.branchScopeId();
         LocalDate today = LocalDate.now();
         LocalDateTime startOfLast6Months = today.minusMonths(5).withDayOfMonth(1).atStartOfDay();
         LocalDateTime endOfToday = today.atTime(23, 59, 59);
 
         // 1. Stats
         Map<String, Object> stats = new HashMap<>();
-        long totalOrders = orderRepository.countByStatus("completed");
-        Double totalRevenueDouble = orderRepository.calculateTotalRevenue();
+        long totalOrders = orderRepository.countByStatus(shopId, branchId, "completed");
+        Double totalRevenueDouble = orderRepository.calculateTotalRevenue(shopId, branchId);
         BigDecimal totalRevenue = totalRevenueDouble != null ? BigDecimal.valueOf(totalRevenueDouble) : BigDecimal.ZERO;
-        long totalCustomers = customerRepository.count();
-        long totalProducts = productRepository.countByActiveTrue();
+        long totalCustomers = customerRepository.countByShopId(shopId);
+        long totalProducts = productRepository.countByShopIdAndActiveTrue(shopId);
 
         stats.put("totalOrders", totalOrders);
         stats.put("totalRevenue", totalRevenue);
@@ -62,7 +68,7 @@ public class DashboardController {
             monthlyRevenue.add(monthData);
         }
 
-        List<Object[]> dailyData = orderRepository.getRevenueByDay(startOfLast6Months, endOfToday);
+        List<Object[]> dailyData = orderRepository.getRevenueByDay(shopId, branchId, startOfLast6Months, endOfToday);
         for (Object[] row : dailyData) {
             if (row[0] == null || row[1] == null) continue;
             LocalDate date;
@@ -86,7 +92,7 @@ public class DashboardController {
         }
 
         // 3. Top Products (last 6 months)
-        List<Object[]> topData = orderRepository.getTopProducts(startOfLast6Months, endOfToday);
+        List<Object[]> topData = orderRepository.getTopProducts(shopId, branchId, startOfLast6Months, endOfToday);
         List<Map<String, Object>> topProducts = new ArrayList<>();
         int count = 0;
         for (Object[] row : topData) {
@@ -99,7 +105,7 @@ public class DashboardController {
         }
 
         // 4. Recent Orders (last 5)
-        List<Order> recent = orderRepository.findRecentOrders(PageRequest.of(0, 5));
+        List<Order> recent = orderRepository.findRecentOrders(shopId, branchId, PageRequest.of(0, 5));
         List<Map<String, Object>> recentOrders = recent.stream().map(order -> {
             Map<String, Object> map = new HashMap<>();
             map.put("id", order.getId());
@@ -112,7 +118,7 @@ public class DashboardController {
         }).toList();
 
         // 5. Low Stock
-        List<Product> lowStockList = productRepository.findLowStockProducts();
+        List<Product> lowStockList = productRepository.findLowStockProducts(shopId);
         List<Map<String, Object>> lowStock = lowStockList.stream().map(p -> {
             Map<String, Object> map = new HashMap<>();
             map.put("id", p.getId());

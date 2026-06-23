@@ -9,6 +9,7 @@ import com.company.sales_management.exception.BadRequestException;
 import com.company.sales_management.exception.ResourceNotFoundException;
 import com.company.sales_management.repository.*;
 import com.company.sales_management.service.OrderService;
+import com.company.sales_management.service.TenantScopeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,31 +43,41 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private BranchRepository branchRepository;
 
+    @Autowired
+    private TenantScopeService tenantScopeService;
+
     @Override
     public Page<OrderResponse> findAll(String search, String status, String startDate, String endDate, Pageable pageable) {
         LocalDateTime start = startDate != null && !startDate.isBlank() ? LocalDate.parse(startDate).atStartOfDay() : null;
         LocalDateTime end = endDate != null && !endDate.isBlank() ? LocalDate.parse(endDate).atTime(23, 59, 59) : null;
-        return orderRepository.searchOrders(search, status, start, end, pageable).map(this::toResponse);
+        return orderRepository.searchOrders(tenantScopeService.requiredShopId(), tenantScopeService.branchScopeId(), search, status, start, end, pageable).map(this::toResponse);
     }
 
     @Override
     public OrderResponse findById(Integer id) {
-        Order order = orderRepository.findById(id)
+        Order order = orderRepository.findByIdAndShopId(id, tenantScopeService.requiredShopId())
                 .orElseThrow(() -> new ResourceNotFoundException("Đơn hàng", "id", id));
+        if (order.getBranch() != null) {
+            tenantScopeService.assertCanAccessBranch(order.getBranch().getId());
+        }
         return toResponse(order);
     }
 
     @Override
     @Transactional
     public OrderResponse create(OrderRequest request) {
+        Shop shop = tenantScopeService.currentShop();
+        Branch branch = tenantScopeService.resolveBranchForWrite(request.getBranchId());
         Order order = new Order();
+        order.setShop(shop);
+        order.setBranch(branch);
 
         // Generate order code
         String orderCode = "HD" + System.currentTimeMillis();
         order.setCode(orderCode);
 
         if (request.getCustomerId() != null) {
-            Customer customer = customerRepository.findById(request.getCustomerId())
+            Customer customer = customerRepository.findByIdAndShopId(request.getCustomerId(), shop.getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Khách hàng", "id", request.getCustomerId()));
             
             // Accumulate loyalty points: 1% of total order
@@ -79,7 +90,10 @@ public class OrderServiceImpl implements OrderService {
         if (request.getEmployeeId() != null) {
             try {
                 Integer empId = Integer.parseInt(request.getEmployeeId());
-                Employee employee = employeeRepository.findById(empId).orElse(null);
+                Employee employee = employeeRepository.findByIdAndShopId(empId, shop.getId()).orElse(null);
+                if (employee != null && employee.getBranch() != null) {
+                    tenantScopeService.assertCanAccessBranch(employee.getBranch().getId());
+                }
                 order.setEmployee(employee);
             } catch (NumberFormatException e) {
                 // Ignore non-numeric employee IDs (like "emp2")
@@ -97,7 +111,7 @@ public class OrderServiceImpl implements OrderService {
         // Create order items and update stock
         List<OrderItem> items = new ArrayList<>();
         for (OrderItemRequest itemReq : request.getItems()) {
-            Product product = productRepository.findById(itemReq.getProductId())
+            Product product = productRepository.findByIdAndShopId(itemReq.getProductId(), shop.getId())
                     .orElseThrow(() -> new ResourceNotFoundException("Sản phẩm", "id", itemReq.getProductId()));
 
             if (product.getStock() < itemReq.getQuantity()) {
@@ -124,8 +138,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponse updateStatus(Integer id, String status) {
-        Order order = orderRepository.findById(id)
+        Order order = orderRepository.findByIdAndShopId(id, tenantScopeService.requiredShopId())
                 .orElseThrow(() -> new ResourceNotFoundException("Đơn hàng", "id", id));
+        if (order.getBranch() != null) {
+            tenantScopeService.assertCanAccessBranch(order.getBranch().getId());
+        }
         order.setStatus(status);
         return toResponse(orderRepository.save(order));
     }
@@ -134,6 +151,14 @@ public class OrderServiceImpl implements OrderService {
         OrderResponse response = new OrderResponse();
         response.setId(order.getId());
         response.setCode(order.getCode());
+        if (order.getShop() != null) {
+            response.setShopId(order.getShop().getId());
+            response.setShopName(order.getShop().getName());
+        }
+        if (order.getBranch() != null) {
+            response.setBranchId(order.getBranch().getId());
+            response.setBranchName(order.getBranch().getName());
+        }
         response.setTotal(order.getTotal());
         response.setDiscount(order.getDiscount());
         response.setPaymentMethod(order.getPaymentMethod());

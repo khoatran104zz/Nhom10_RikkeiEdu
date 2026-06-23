@@ -16,6 +16,10 @@ public class StockTransaction {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shop_id")
+    private Shop shop;
+
     @Column(nullable = false, length = 20)
     private String type; // 'IMPORT', 'EXPORT', 'ADJUST'
 
@@ -50,6 +54,9 @@ public class StockTransaction {
 
     public Product getProduct() { return product; }
     public void setProduct(Product product) { this.product = product; }
+
+    public Shop getShop() { return shop; }
+    public void setShop(Shop shop) { this.shop = shop; }
 
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }

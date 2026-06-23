@@ -25,6 +25,8 @@ const iconMap: Record<string, React.ComponentType<{ size?: number }>> = {
 
 function getHomePath(role: string) {
   switch (role) {
+    case 'SYSTEM_ADMIN':
+      return '/';
     case 'ADMIN':
       return '/';
     case 'BRANCH_MANAGER':
@@ -70,9 +72,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   }
 
   // Fallback defaults if no user logged in (failsafe)
-  const activeUser = user || { name: 'Admin', role: 'ADMIN', branchId: null };
+  const activeUser = user || { name: 'Admin', role: 'ADMIN', branchId: null, branchName: null, shopName: 'eManage' };
   const userRole = activeUser.role || 'ADMIN';
   const roleLabel = ROLE_LABELS[userRole] || userRole;
+  const scopeLabel = activeUser.branchName || activeUser.shopName || 'Hệ thống eManage';
 
   const handleLogout = () => {
     logout();
@@ -144,7 +147,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           {userRole !== 'CUSTOMER' && (
             <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 hover:bg-surface-55 dark:hover:bg-gray-800 rounded-xl cursor-pointer text-xs font-semibold text-gray-600 dark:text-gray-300 transition-colors">
               <Building2 size={14} className="text-gray-400" />
-              <span>{activeUser.branchId ? 'Chi nhánh Trung tâm' : 'Hệ thống eManage'}</span>
+              <span>{scopeLabel}</span>
               <ChevronDown size={11} className="text-gray-400" />
             </div>
           )}

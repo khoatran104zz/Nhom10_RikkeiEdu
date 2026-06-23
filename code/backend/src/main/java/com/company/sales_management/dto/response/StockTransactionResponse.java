@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 
 public class StockTransactionResponse {
     private Integer id;
+    private Integer shopId;
+    private String shopName;
     private Integer productId;
     private String productName;
     private String type;
@@ -19,6 +21,10 @@ public class StockTransactionResponse {
 
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
+    public Integer getShopId() { return shopId; }
+    public void setShopId(Integer shopId) { this.shopId = shopId; }
+    public String getShopName() { return shopName; }
+    public void setShopName(String shopName) { this.shopName = shopName; }
     public Integer getProductId() { return productId; }
     public void setProductId(Integer productId) { this.productId = productId; }
     public String getProductName() { return productName; }

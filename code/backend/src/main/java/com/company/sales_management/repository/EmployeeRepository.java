@@ -12,11 +12,14 @@ import java.util.List;
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
     
-    @Query("SELECT e FROM Employee e WHERE :search IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :search, '%')) OR e.phone LIKE CONCAT('%', :search, '%') ORDER BY e.createdAt DESC")
-    List<Employee> searchEmployees(@Param("search") String search);
+    @Query("SELECT e FROM Employee e WHERE e.shop.id = :shopId AND (:search IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :search, '%')) OR e.phone LIKE CONCAT('%', :search, '%')) ORDER BY e.createdAt DESC")
+    List<Employee> searchEmployees(@Param("shopId") Integer shopId, @Param("search") String search);
 
     @Query("SELECT e FROM Employee e WHERE " +
+           "e.shop.id = :shopId AND " +
            "(:search IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :search, '%')) OR e.phone LIKE CONCAT('%', :search, '%')) AND " +
            "(:branchId IS NULL OR e.branch.id = :branchId)")
-    Page<Employee> findAllWithFilters(@Param("search") String search, @Param("branchId") Integer branchId, Pageable pageable);
+    Page<Employee> findAllWithFilters(@Param("shopId") Integer shopId, @Param("search") String search, @Param("branchId") Integer branchId, Pageable pageable);
+
+    java.util.Optional<Employee> findByIdAndShopId(Integer id, Integer shopId);
 }

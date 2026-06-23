@@ -5,6 +5,7 @@ import com.company.sales_management.repository.CustomerRepository;
 import com.company.sales_management.repository.OrderRepository;
 import com.company.sales_management.repository.ProductRepository;
 import com.company.sales_management.service.DashboardService;
+import com.company.sales_management.service.TenantScopeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,25 +26,30 @@ public class DashboardServiceImpl implements DashboardService {
     @Autowired
     private CustomerRepository customerRepository;
 
+    @Autowired
+    private TenantScopeService tenantScopeService;
+
     @Override
     public DashboardResponse getDashboardStats(String startDate, String endDate) {
+        Integer shopId = tenantScopeService.requiredShopId();
+        Integer branchId = tenantScopeService.branchScopeId();
         LocalDateTime start = startDate != null && !startDate.isBlank() ? LocalDate.parse(startDate).atStartOfDay()
                 : LocalDate.now().withDayOfMonth(1).atStartOfDay();
         LocalDateTime end = endDate != null && !endDate.isBlank() ? LocalDate.parse(endDate).atTime(23, 59, 59)
                 : LocalDateTime.now();
 
         DashboardResponse response = new DashboardResponse();
-        response.setTotalOrders(orderRepository.countByCreatedAtBetween(start, end));
+        response.setTotalOrders(orderRepository.countByCreatedAtBetween(shopId, branchId, start, end));
         
-        Double revenueDouble = orderRepository.sumFinalAmountByCreatedAtBetween(start, end);
+        Double revenueDouble = orderRepository.sumFinalAmountByCreatedAtBetween(shopId, branchId, start, end);
         response.setTotalRevenue(revenueDouble != null ? BigDecimal.valueOf(revenueDouble) : BigDecimal.ZERO);
         
-        response.setTotalProducts(productRepository.countByActiveTrue());
-        response.setTotalCustomers(customerRepository.count());
-        response.setLowStockProducts((long) productRepository.findLowStockProducts().size());
+        response.setTotalProducts(productRepository.countByShopIdAndActiveTrue(shopId));
+        response.setTotalCustomers(customerRepository.countByShopId(shopId));
+        response.setLowStockProducts((long) productRepository.findLowStockProducts(shopId).size());
 
         // Revenue by day
-        List<Object[]> revenueData = orderRepository.getRevenueByDay(start, end);
+        List<Object[]> revenueData = orderRepository.getRevenueByDay(shopId, branchId, start, end);
         List<DashboardResponse.RevenueByDayResponse> revenueByDay = revenueData.stream().map(row -> {
             DashboardResponse.RevenueByDayResponse r = new DashboardResponse.RevenueByDayResponse();
             r.setDate(row[0].toString());
@@ -54,7 +60,7 @@ public class DashboardServiceImpl implements DashboardService {
         response.setRevenueByDay(revenueByDay);
 
         // Top products
-        List<Object[]> topProductData = orderRepository.getTopProducts(start, end);
+        List<Object[]> topProductData = orderRepository.getTopProducts(shopId, branchId, start, end);
         List<DashboardResponse.TopProductResponse> topProducts = topProductData.stream().map(row -> {
             DashboardResponse.TopProductResponse t = new DashboardResponse.TopProductResponse();
             t.setProductId(row[0] != null ? ((Number) row[0]).intValue() : null);

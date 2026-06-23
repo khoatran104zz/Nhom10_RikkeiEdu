@@ -11,13 +11,13 @@ public class Customer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, length = 50)
     private String code;
 
     @Column(nullable = false, length = 150)
     private String name;
 
-    @Column(nullable = false, unique = true, length = 20)
+    @Column(nullable = false, length = 20)
     private String phone;
 
     @Column(length = 100)
@@ -28,6 +28,10 @@ public class Customer {
 
     @Column(nullable = false)
     private Integer points = 0;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shop_id")
+    private Shop shop;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -101,6 +105,14 @@ public class Customer {
 
     public void setPoints(Integer points) {
         this.points = points;
+    }
+
+    public Shop getShop() {
+        return shop;
+    }
+
+    public void setShop(Shop shop) {
+        this.shop = shop;
     }
 
     public LocalDateTime getCreatedAt() {

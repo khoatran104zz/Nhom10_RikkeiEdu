@@ -26,6 +26,10 @@ public class Supplier {
     @Column(name = "contact_person", length = 150)
     private String contactPerson;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shop_id")
+    private Shop shop;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -90,6 +94,14 @@ public class Supplier {
 
     public void setContactPerson(String contactPerson) {
         this.contactPerson = contactPerson;
+    }
+
+    public Shop getShop() {
+        return shop;
+    }
+
+    public void setShop(Shop shop) {
+        this.shop = shop;
     }
 
     public LocalDateTime getCreatedAt() {

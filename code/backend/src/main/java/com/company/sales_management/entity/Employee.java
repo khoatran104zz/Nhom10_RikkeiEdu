@@ -27,6 +27,10 @@ public class Employee {
     private String email;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shop_id")
+    private Shop shop;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id")
     private Branch branch;
 
@@ -65,6 +69,9 @@ public class Employee {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public Shop getShop() { return shop; }
+    public void setShop(Shop shop) { this.shop = shop; }
 
     public Branch getBranch() { return branch; }
     public void setBranch(Branch branch) { this.branch = branch; }

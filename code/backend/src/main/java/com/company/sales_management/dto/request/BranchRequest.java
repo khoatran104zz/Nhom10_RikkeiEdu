@@ -14,6 +14,8 @@ public class BranchRequest {
     @Size(max = 20, message = "Số điện thoại không được vượt quá 20 ký tự")
     private String phone;
 
+    private Integer shopId;
+
     // Getters and Setters
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -21,4 +23,6 @@ public class BranchRequest {
     public void setAddress(String address) { this.address = address; }
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
+    public Integer getShopId() { return shopId; }
+    public void setShopId(Integer shopId) { this.shopId = shopId; }
 }

@@ -20,6 +20,10 @@ public class Branch {
     @Column(length = 20)
     private String phone;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shop_id")
+    private Shop shop;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -68,6 +72,14 @@ public class Branch {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public Shop getShop() {
+        return shop;
+    }
+
+    public void setShop(Shop shop) {
+        this.shop = shop;
     }
 
     public LocalDateTime getCreatedAt() {

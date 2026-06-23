@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 public class SettingResponse {
     private Integer id;
+    private Integer shopId;
+    private String tenantShopName;
     private String shopName;
     private String address;
     private String phone;
@@ -16,6 +18,10 @@ public class SettingResponse {
 
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
+    public Integer getShopId() { return shopId; }
+    public void setShopId(Integer shopId) { this.shopId = shopId; }
+    public String getTenantShopName() { return tenantShopName; }
+    public void setTenantShopName(String tenantShopName) { this.tenantShopName = tenantShopName; }
     public String getShopName() { return shopName; }
     public void setShopName(String shopName) { this.shopName = shopName; }
     public String getAddress() { return address; }

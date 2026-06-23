@@ -28,6 +28,8 @@ const ROUTE_ROLES = [
 
 function getHomePath(role: string) {
   switch (role) {
+    case 'SYSTEM_ADMIN':
+      return '/';
     case 'ADMIN':
       return '/';
     case 'BRANCH_MANAGER':
@@ -68,7 +70,7 @@ export function middleware(request: NextRequest) {
 
     // If accessing root `/`, redirect non-ADMINs to their respective dashboard/page
     if (pathname === '/') {
-      if (role && role !== 'ADMIN') {
+      if (role && role !== 'ADMIN' && role !== 'SYSTEM_ADMIN') {
         const homeUrl = new URL(getHomePath(role), request.url);
         return NextResponse.redirect(homeUrl);
       }

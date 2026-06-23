@@ -10,10 +10,16 @@ import java.util.List;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Integer> {
     
-    @Query("SELECT c FROM Category c WHERE :search IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) ORDER BY c.createdAt DESC")
-    List<Category> searchCategories(@Param("search") String search);
+    @Query("SELECT c FROM Category c WHERE c.shop.id = :shopId AND (:search IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%'))) ORDER BY c.createdAt DESC")
+    List<Category> searchCategories(@Param("shopId") Integer shopId, @Param("search") String search);
 
-    List<Category> findByNameContainingIgnoreCase(String name);
+    List<Category> findByShopIdAndNameContainingIgnoreCase(Integer shopId, String name);
 
-    boolean existsByName(String name);
+    List<Category> findByShopId(Integer shopId);
+
+    java.util.Optional<Category> findByIdAndShopId(Integer id, Integer shopId);
+
+    boolean existsByShopIdAndName(Integer shopId, String name);
+
+    boolean existsByShopIdAndNameAndIdNot(Integer shopId, String name, Integer id);
 }

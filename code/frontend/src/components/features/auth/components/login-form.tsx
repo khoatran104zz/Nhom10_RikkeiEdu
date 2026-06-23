@@ -11,6 +11,8 @@ import { User, AuthResponse } from '@/types';
 
 function getHomePath(role: string) {
   switch (role) {
+    case 'SYSTEM_ADMIN':
+      return '/';
     case 'ADMIN':
       return '/';
     case 'BRANCH_MANAGER':
@@ -44,7 +46,10 @@ export default function LoginForm() {
     email: serverUser.email,
     name: serverUser.fullName || serverUser.username || serverUser.email,
     role: serverUser.roleName,
+    shopId: serverUser.shopId,
+    shopName: serverUser.shopName,
     branchId: serverUser.branchId,
+    branchName: serverUser.branchName,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {

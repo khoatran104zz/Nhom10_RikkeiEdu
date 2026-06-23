@@ -34,6 +34,10 @@ public class User {
     private Role role;
 
     @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "shop_id")
+    private Shop shop;
+
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "branch_id")
     private Branch branch;
 
@@ -78,6 +82,9 @@ public class User {
 
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
+
+    public Shop getShop() { return shop; }
+    public void setShop(Shop shop) { this.shop = shop; }
 
     public Branch getBranch() { return branch; }
     public void setBranch(Branch branch) { this.branch = branch; }

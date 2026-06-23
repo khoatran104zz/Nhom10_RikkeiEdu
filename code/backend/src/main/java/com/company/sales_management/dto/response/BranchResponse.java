@@ -7,6 +7,8 @@ public class BranchResponse {
     private String name;
     private String address;
     private String phone;
+    private Integer shopId;
+    private String shopName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -18,6 +20,10 @@ public class BranchResponse {
     public void setAddress(String address) { this.address = address; }
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
+    public Integer getShopId() { return shopId; }
+    public void setShopId(Integer shopId) { this.shopId = shopId; }
+    public String getShopName() { return shopName; }
+    public void setShopName(String shopName) { this.shopName = shopName; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
